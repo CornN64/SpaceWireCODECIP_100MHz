@@ -230,7 +230,7 @@ begin
             full           => transmitFIFOFull,
             readDataCount  => transmitFIFODataCount,
             writeDataCount => open,
-            reset          => reset
+            reset          => iResetReceiveFIFO --reset
             );
 
 
@@ -246,7 +246,7 @@ begin
             full           => receiveFIFOFull,
             readDataCount  => receiveFIFOCount,
             writeDataCount => open,
-            reset          => reset
+            reset          => iResetReceiveFIFO --reset
             );
 
 
@@ -330,7 +330,7 @@ begin
         if (reset = '1') then
             iMiddleOfReceivePacket <= '0';
             iReceiveFIFOWriteEEP   <= '0';
-            iResetReceiveFIFO      <= '0';
+            iResetReceiveFIFO      <= '1';
         elsif (receiveClock'event and receiveClock = '1') then
             if (iSpaceWireResetOut = '1') then
                 iResetReceiveFIFO <= '1';

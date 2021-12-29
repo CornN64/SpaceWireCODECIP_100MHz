@@ -212,9 +212,9 @@ begin
                         iLinkDownTransition <= '0';
                     end if;
 
-                    if (FIFOAvailable = '1') then
+                    --if (FIFOAvailable = '1') then --this hangs the link in disabled state after a LinkDisable with no recovery
                         iTimer6p4usReset <= '0';
-                    end if;
+                    --end if;
                     iSpaceWireResetOut      <= '1';
                     iEnableReceive          <= '0';
                     iEnableTransmit         <= '0';
