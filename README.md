@@ -1,4 +1,7 @@
+![LinkDisable in loopback mode](Documents/Screenshot_LinkDisable.png.png)
+
 *******************************************************************************
+Fixed hang when LinkDisable is used (link should now restart properly and flush FIFOs)
 Added loopback for testing purposes
 Config moved to top file as constants
 Stats as vector instead of array
