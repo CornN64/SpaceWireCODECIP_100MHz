@@ -20,6 +20,11 @@
 -- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 -- THE SOFTWARE.
+-- 
+-- 2021/12/29 Added loop back mode for testing, Walter Puccio
+--
+-- statisticalInformation vector consists of eight 32bit words MSB downto LSB as follows:
+-- LinkDownCount, LinkUpCount, ReceiveByteCount, TransmitByteCount, ReceiveEEPCount, TransmitEEPCount, ReceiveEOPCount, TransmitEOPCount
 -------------------------------------------------------------------------------
 
 library IEEE;
@@ -27,11 +32,8 @@ use IEEE.STD_LOGIC_1164.all;
 use IEEE.STD_LOGIC_ARITH.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 
-library work;
-use work.SpaceWireCODECIPPackage.all;
-
-
 entity SpaceWireCODECIP is
+    generic (LoopBack  :integer := 0);   --Enable loopback mode for testing if set to 1, set to 0 for normal operation
     port (
         clock                       : in  std_logic;
         transmitClock               : in  std_logic;
@@ -67,19 +69,29 @@ entity SpaceWireCODECIP is
         transmitActivity            : out std_logic;
         receiveActivity             : out std_logic;
 --
-        spaceWireDataOut            : out std_logic;
-        spaceWireStrobeOut          : out std_logic;
-        spaceWireDataIn             : in  std_logic;
-        spaceWireStrobeIn           : in  std_logic;
+        dout                        : out std_logic;    --spaceWireDataOut
+        sout                        : out std_logic;    --spaceWireStrobeOut
+        din                         : in  std_logic;    --spaceWireDataIn
+        sin                         : in  std_logic;    --spaceWireStrobeIn
 --                
-        statisticalInformationClear : in  std_logic;
-        statisticalInformation      : out bit32X8Array
-
+        statisticalInformation      : out std_logic_vector(8*32-1 downto 0); --8 entries with 32bits;
+        statisticalInformationClear : in  std_logic
         );
 end SpaceWireCODECIP;
 
 architecture Behavioral of SpaceWireCODECIP is
+--------------------------------------------------------------------------------
+--  Declare constants.
+--  Note that initial link speed synchronisation should be done at 10Mbit
+--------------------------------------------------------------------------------
+    constant gDisconnectCountValue               : integer range 0 to 255        := 141;       -- (141 @166MHz) ReceiveClock period * gDisconnectCountValue = 850ns.
+    constant gTimer6p4usValue                    : integer range 0 to 1023       := 320;       -- (320 @50MHz) System Clock period * gTimer6p4usValue = 6.4us.
+    constant gTimer12p8usValue                   : integer range 0 to 2047       := 640;       -- (640 @50MHz) System Clock period * gTimer12p8usValue = 12.8us.
+    constant gInitializeTransmitClockDivideValue : std_logic_vector (5 downto 0) := "001001";  -- (9 @100MHz) TransmitClock frequency / (gInitializeTransmitClockDivideValue + 1) = 10MHz.
 
+--------------------------------------------------------------------------------
+--  Components
+--------------------------------------------------------------------------------
     component spaceWireCODECIPFIFO9x64 is
         port (
             writeDataIn    : in  std_logic_vector(8 downto 0);
@@ -140,8 +152,8 @@ architecture Behavioral of SpaceWireCODECIP is
             spaceWireStrobeOut          : out std_logic;
             spaceWireDataIn             : in  std_logic;
             spaceWireStrobeIn           : in  std_logic;
-            statisticalInformationClear : in  std_logic;
-            statisticalInformation      : out bit32X8Array
+            statisticalInformation      : out std_logic_vector(8*32-1 downto 0); --8 entries with 32bits;
+            statisticalInformationClear : in  std_logic
             );
     end component;
 
@@ -155,6 +167,9 @@ architecture Behavioral of SpaceWireCODECIP is
             );
     end component;
 
+--------------------------------------------------------------------------------
+--  Signals
+--------------------------------------------------------------------------------
     signal iTransmitBusy            : std_logic;
     signal transmitBusySynchronized : std_logic;
 
@@ -190,6 +205,8 @@ architecture Behavioral of SpaceWireCODECIP is
     signal iFIFOAvailable                     : std_logic;
     signal iReceiveFIFOWriteEEP               : std_logic;
 
+	signal sel_sin : std_logic; --Used for loop back mode
+	signal sel_din : std_logic; --Used for loop back mode
 begin
 
     iTransmitData            <= transmitFIFOReadData (7 downto 0);
@@ -242,6 +259,9 @@ begin
             synchronizedOut   => transmitBusySynchronized
             );
 
+    -- allow for loopback testing
+    sel_sin <= sin when LoopBack = 0 else sout;
+    sel_din <= din when LoopBack = 0 else dout;
 
     SpaceWireLinkInterface : SpaceWireCODECIPLinkInterface
         generic map (
@@ -283,12 +303,13 @@ begin
             receiveDataControlFlag      => receiveDataControlFlag,
             receiveFIFOCount            => receiveFIFOCount,
             -- serial i/o.
-            spaceWireDataOut            => spaceWireDataOut,
-            spaceWireStrobeOut          => spaceWireStrobeOut,
-            spaceWireDataIn             => spaceWireDataIn,
-            spaceWireStrobeIn           => spaceWireStrobeIn,
-            statisticalInformationClear => statisticalInformationClear,
-            statisticalInformation      => statisticalInformation
+            spaceWireDataOut            => dout,
+            spaceWireStrobeOut          => sout,
+            spaceWireDataIn             => sel_din,
+            spaceWireStrobeIn           => sel_sin,
+            --
+            statisticalInformation      => statisticalInformation,
+            statisticalInformationClear => statisticalInformationClear
             );
 
     iReceiveFIFOWriteData <= "100000001" when iReceiveFIFOWriteEEP = '1' else receiveDataControlFlag & receiveData;
@@ -427,4 +448,3 @@ begin
     end process;
     
 end Behavioral;
-

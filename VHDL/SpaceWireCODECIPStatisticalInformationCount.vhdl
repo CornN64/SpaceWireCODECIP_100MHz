@@ -27,9 +27,6 @@ use IEEE.STD_LOGIC_1164.all;
 use IEEE.STD_LOGIC_ARITH.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 
-library work;
-use work.SpaceWireCODECIPPackage.all;
-
 entity SpaceWireCODECIPStatisticalInformationCount is
     port (
         clock                       : in  std_logic;
@@ -53,7 +50,7 @@ entity SpaceWireCODECIPStatisticalInformationCount is
         nullSynchronous             : in  std_logic;
         fctSynchronous              : in  std_logic;
 --                
-        statisticalInformation      : out bit32X8Array;
+        statisticalInformation      : out std_logic_vector(8*32-1 downto 0); --8 entries with 32bits;
         characterMonitor            : out std_logic_vector(6 downto 0)
         );
 
@@ -92,19 +89,19 @@ architecture behavioral of SpaceWireCODECIPStatisticalInformationCount is
 begin
 
     characterMonitor          <= iCharacterMonitor;
-    statisticalInformation(0) <= iTransmitEOPCount;
-    statisticalInformation(1) <= iReceiveEOPCount;
-    statisticalInformation(2) <= iTransmitEEPCount;
-    statisticalInformation(3) <= iReceiveEEPCount;
-    statisticalInformation(4) <= iTransmitByteCount;
-    statisticalInformation(5) <= iReceiveByteCount;
-    statisticalInformation(6) <= iLinkUpCount;
-    statisticalInformation(7) <= iLinkDownCount;
+    statisticalInformation <= iLinkDownCount &
+                              iLinkUpCount &
+                              iReceiveByteCount &
+                              iTransmitByteCount &
+                              iReceiveEEPCount &
+                              iTransmitEEPCount &
+                              iReceiveEOPCount &
+                              iTransmitEOPCount;
 
 ----------------------------------------------------------------------
 -- One Shot Status Information.
 ----------------------------------------------------------------------
-    process (clock, reset)
+    process (reset, iReceiveEEPSynchronize, iReceiveEOPSynchronize, fctSynchronous, nullSynchronous, iReceiveByteSynchronize, iTransmitByteSynchronize, linkUpEnable)
     begin
         if (reset = '1') then
             iCharacterMonitor <= (others => '0');

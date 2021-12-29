@@ -105,7 +105,6 @@ architecture Behavioral of SpaceWireCODECIPStateMachine is
     signal iLinkUpTransition        : std_logic;
     signal iLinkDownTransition      : std_logic;
     signal iLinkUpEnable            : std_logic;
-    signal creditSynchronize        : std_logic;
     
 begin
 

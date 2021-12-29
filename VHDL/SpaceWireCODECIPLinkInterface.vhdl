@@ -28,10 +28,6 @@ use IEEE.STD_LOGIC_1164.all;
 use IEEE.STD_LOGIC_ARITH.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 
-library work;
-use work.SpaceWireCODECIPPackage.all;
-
-
 entity SpaceWireCODECIPLinkInterface is
     generic (
         gDisconnectCountValue     : integer                       := 141;
@@ -76,8 +72,9 @@ entity SpaceWireCODECIPLinkInterface is
         spaceWireStrobeOut          : out std_logic;
         spaceWireDataIn             : in  std_logic;
         spaceWireStrobeIn           : in  std_logic;
-        statisticalInformationClear : in  std_logic;
-        statisticalInformation      : out bit32X8Array
+        --
+        statisticalInformation      : out std_logic_vector(8*32-1 downto 0); --8 entries with 32bits;
+        statisticalInformationClear : in  std_logic
         );
 end SpaceWireCODECIPLinkInterface;
 
@@ -221,7 +218,7 @@ architecture Behavioral of SpaceWireCODECIPLinkInterface is
             nullSynchronous             : in  std_logic;
             fctSynchronous              : in  std_logic;
             statisticalInformationClear : in  std_logic;
-            statisticalInformation      : out bit32X8Array;
+            statisticalInformation      : out std_logic_vector(8*32-1 downto 0); --8 entries with 32bits;
             characterMonitor            : out std_logic_vector(6 downto 0)
             );
     end component;
