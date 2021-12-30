@@ -1,13 +1,13 @@
 ![LinkDisable in loopback mode](Documents/Screenshot_LinkDisable.png)
 
 *******************************************************************************
-Use functions instead of ROM tables for gray <-> binary encoding<br/>
+Use functions instead of ROM tables for gray <-> binary encoding and some generalization of FIFO size<br/>
 Fixed hang when LinkDisable is used (link should now restart properly and flush FIFOs)<br/>
 Added loopback for testing purposes<br/>
 Config moved to top file as constants<br/>
 Stats as vector instead of array<br/>
-(kind of) translated the PDF doc to english<br/>
-Note that current config is for (as per PDF)<br/>
+Translated the PDF doc to english (kind of)<br/>
+Note that current SpW config is for (as noted in the PDF)<br/>
 50MHz system clock<br/>
 100MHz Tx clock<br/>
 167MHz Rx clock<br/>
