@@ -1,6 +1,7 @@
 ![LinkDisable in loopback mode](Documents/Screenshot_LinkDisable.png)
 
 *******************************************************************************
+Use functions instead of ROM tables for gray <-> binary encoding<br/>
 Fixed hang when LinkDisable is used (link should now restart properly and flush FIFOs)<br/>
 Added loopback for testing purposes<br/>
 Config moved to top file as constants<br/>

@@ -20,6 +20,8 @@
 -- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 -- THE SOFTWARE.
+--
+-- Use functions instead of ROM tables for gray <-> binary encoding and some generalization of FIFO size. Walter P 2021
 -------------------------------------------------------------------------------
 
 library IEEE;
@@ -28,6 +30,7 @@ use IEEE.STD_LOGIC_ARITH.all;
 use IEEE.STD_LOGIC_UNSIGNED.all;
 
 entity SpaceWireCODECIPFIFO9x64 is
+    generic (GrayFuncs  :integer := 1);   --(1) Use function to convert Bin->Gray and Gray->Bin or (0) use ROM tables
     port (
         writeDataIn    : in  std_logic_vector(8 downto 0);
         readClock      : in  std_logic;
@@ -108,6 +111,36 @@ architecture RTL of SpaceWireCODECIPFIFO9x64 is
     signal iReadDataCount     : std_logic_vector(5 downto 0);
     signal iEmpty             : std_logic;
 
+--**************************************************************
+--function Bin2Gray
+--Walter P
+--**************************************************************
+function Bin2Gray (B : std_logic_vector(5 downto 0)) return std_logic_vector is
+variable G : std_logic_vector(5 downto 0);
+begin
+    G(G'high) := B(B'high);
+	for J in 0 to B'high-1 loop
+        G(J) := B(J) XOR B(J+1);
+    end loop;
+
+    return G;
+end Bin2Gray;
+
+--**************************************************************
+--function Gray2Bin
+--Walter P
+--**************************************************************
+function Gray2Bin (G : std_logic_vector(5 downto 0)) return std_logic_vector is
+variable B : std_logic_vector(5 downto 0);
+begin
+    B(G'high) := G(B'high);
+	for J in G'high-1 downto 0 loop
+        B(J) := B(J+1) XOR G(J);
+    end loop;
+
+    return B;
+end Gray2Bin;
+--**************************************************************
 begin
 
     writeDataCount <= iWriteDataCount;
@@ -137,7 +170,7 @@ begin
     begin
         if (writeClock'event and writeClock = '1') then
             if (iWriteReset = '1') then
-                iWritePointer <= "000000";
+                iWritePointer <= (others => '0');
             elsif (writeEnable = '1') then
                 iWritePointer <= iWritePointer + '1';
             end if;
@@ -165,14 +198,19 @@ begin
     begin
         if (writeClock'event and writeClock = '1') then
             if (iWriteReset = '1') then
-                iGrayWritePointer <= "000000";
+                iGrayWritePointer <= (others => '0');
             else
-                iGrayWritePointer <= binaryToGray(conv_integer(iWritePointer));
+                if GrayFuncs=1 then
+	                iGrayWritePointer <= Bin2Gray(iWritePointer);
+                else
+    	            iGrayWritePointer <= binaryToGray(conv_integer(iWritePointer));
+                end if;
             end if;
         end if;
     end process;
 
-    iFull <= '1' when ((iWritePointer - iReadPointer3) > "111000") or iWriteReset = '1' else '0';
+    --signal FIFO full when FIFO is eight writes from over writing it self
+    iFull <= '1' when ((iWritePointer - iReadPointer3) > conv_std_logic_vector(2**iWritePointer'length-8, iWritePointer'length)) or iWriteReset = '1' else '0';
 
 ----------------------------------------------------------------------
 -- Convert gray code Readpointer to binary Readpointer to calculate writeDataCount and full.
@@ -181,13 +219,17 @@ begin
     begin
         if (writeClock'event and writeClock = '1') then
             if (iWriteReset = '1') then
-                iGrayReadPointer1 <= "000000";
-                iGrayReadPointer2 <= "000000";
-                iReadPointer3     <= "000000";
+                iGrayReadPointer1 <= (others => '0');
+                iGrayReadPointer2 <= (others => '0');
+                iReadPointer3     <= (others => '0');
             else
                 iGrayReadPointer1 <= iGrayReadPointer;
                 iGrayReadPointer2 <= iGrayReadPointer1;
-                iReadPointer3     <= grayToBinary(conv_integer(iGrayReadPointer2));
+                if GrayFuncs=1 then
+                    iReadPointer3 <= Gray2Bin(iGrayReadPointer2);
+                else
+                    iReadPointer3 <= grayToBinary(conv_integer(iGrayReadPointer2));
+                end if;
             end if;
         end if;
     end process;
@@ -199,15 +241,19 @@ begin
     begin
         if (readClock'event and readClock = '1') then
             if (iReadReset = '1') then
-                iGrayWritePointer1 <= "000000";
-                iGrayWritePointer2 <= "000000";
-                iGrayWritePointer3 <= "000000";
-                iWritePointer4     <= "000000";
+                iGrayWritePointer1 <= (others => '0');
+                iGrayWritePointer2 <= (others => '0');
+                iGrayWritePointer3 <= (others => '0');
+                iWritePointer4     <= (others => '0');
             else
                 iGrayWritePointer1 <= iGrayWritePointer;
                 iGrayWritePointer2 <= iGrayWritePointer1;
                 iGrayWritePointer3 <= iGrayWritePointer2;
-                iWritePointer4     <= grayToBinary(conv_integer(iGrayWritePointer3));
+                if GrayFuncs=1 then
+                    iWritePointer4 <= Gray2Bin(iGrayWritePointer3);
+                else
+                    iWritePointer4 <= grayToBinary(conv_integer(iGrayWritePointer3));
+                end if;
             end if;
         end if;
     end process;
@@ -235,7 +281,7 @@ begin
     begin
         if (readClock'event and readClock = '1') then
             if (iReadReset = '1') then
-                iReadPointer <= "000000";
+                iReadPointer <= (others => '0');
             elsif(iEmpty = '0')then
                 if readEnable = '1' then
                     iReadPointer <= iReadPointer + '1';
@@ -251,9 +297,13 @@ begin
     begin
         if (readClock'event and readClock = '1') then
             if (iReadReset = '1') then
-                iGrayReadPointer <= "000000";
+                iGrayReadPointer <= (others => '0');
             else
-                iGrayReadPointer <= binaryToGray(conv_integer(iReadPointer));
+                if GrayFuncs=1 then
+                    iGrayReadPointer <= Bin2Gray(iReadPointer);
+                else
+                    iGrayReadPointer <= binaryToGray(conv_integer(iReadPointer));
+                end if;
             end if;
         end if;
     end process;
