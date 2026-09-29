@@ -68,7 +68,7 @@ architecture RTL of SpaceWireCODECIPReceiverSynchronize is
     signal iCommandFlag, iDataFlag : std_logic;
     
     type spaceWireStateMachine is (
-        spaceWireIdel,
+        spaceWireIdle,
         spaceWireOff,
         spaceWireEven0,
         spaceWireEven1,
@@ -126,10 +126,10 @@ begin
     process (receiveClock, spaceWireReset, iDisconnectErrorOut)
     begin
         if (spaceWireReset = '1' or iDisconnectErrorOut = '1') then
-            spaceWireState <= spaceWireIdel;
+            spaceWireState <= spaceWireIdle;
         elsif (receiveClock'event and receiveClock = '1') then
             if(enableReceive = '1')then
-                if (spaceWireState = spaceWireIdel) then
+                if (spaceWireState = spaceWireIdle) then
                     if (iSpaceWireSynchronize = "00") then
                         spaceWireState <= spaceWireOff;
                     end if;
@@ -154,7 +154,7 @@ begin
                         spaceWireState <= spaceWireWaitEven;
                     end if;
                 else
-                    spaceWireState <= spaceWireIdel;
+                    spaceWireState <= spaceWireIdle;
                 end if;
             end if;
         end if;
@@ -217,7 +217,7 @@ begin
                     else
                         iDisconnectErrorOut <= '1';
                     end if;
-                elsif (spaceWireState = spaceWireIdel) then
+                elsif (spaceWireState = spaceWireIdle) then
                     iLinkTimeOutCounter <= X"00";
                     
                 elsif (spaceWireState = spaceWireOdd1 or spaceWireState = spaceWireEven1 or spaceWireState = spaceWireOdd0 or spaceWireState = spaceWireEven0) then
@@ -234,7 +234,7 @@ begin
             -- Control Flag.
             ----------------------------------------------------------------------
             if(enableReceive = '1')then
-                if (spaceWireState = spaceWireIdel) then
+                if (spaceWireState = spaceWireIdle) then
                     iCommandFlag <= '0'; iDataFlag <= '0';
                 elsif (iBitCount = 0 and spaceWireState = spaceWireEven0) then
                     iCommandFlag <= '0'; iDataFlag <= '1';
@@ -249,7 +249,7 @@ begin
             -- spaceWireState.
             ----------------------------------------------------------------------
             if(enableReceive = '1' and iEscapeErrorOut = '0' and iDisconnectErrorOut = '0')then
-                if (spaceWireState = spaceWireIdel or spaceWireState = spaceWireOff) then
+                if (spaceWireState = spaceWireIdle or spaceWireState = spaceWireOff) then
                     iBitCount <= X"0";
                 elsif (spaceWireState = spaceWireEven1 or spaceWireState = spaceWireEven0) then
                     if (iBitCount = 1 and iCommandFlag = '1') then
@@ -266,7 +266,7 @@ begin
 
             ----------------------------------------------------------------------
             -- ECSS-E-ST-50-12C 7.3 Control characters and control codes.
-            -- Discriminate  Data character, Control code and Time corde, and write to 
+            -- Discriminate data characters, control codes, and time codes, then write to
             -- Receive buffer
             ----------------------------------------------------------------------
             if(enableReceive = '1')then
@@ -365,7 +365,7 @@ begin
                     iReceiveFCTOut           <= '0';
                     iReceiverEOPOut          <= '0';
                     iReceiverEEPOut          <= '0';
-                elsif spaceWireState = spaceWireIdel then
+                elsif spaceWireState = spaceWireIdle then
                     iReceiverDataValidOut    <= '0';
                     iReceiveTimeCodeValidOut <= '0';
                     iReceiveNullOut          <= '0';

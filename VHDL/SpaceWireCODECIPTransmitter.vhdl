@@ -60,8 +60,8 @@ entity SpaceWireCODECIPTransmitter is
         outstandingCountOut      : out std_logic_vector (5 downto 0);
         spaceWireResetOut        : in  std_logic;
         transmitEEPAsynchronous  : out std_logic;
-        TransmitEOPAsynchronous  : out std_logic;
-        TransmitByteAsynchronous : out std_logic
+        transmitEOPAsynchronous  : out std_logic;
+        transmitByteAsynchronous : out std_logic
         );
 end SpaceWireCODECIPTransmitter;
 
@@ -117,7 +117,7 @@ architecture Behavioral of SpaceWireCODECIPTransmitter is
     signal iTransmitDataControlFlagBuffer  : std_logic;
     signal gotFCTSynchronized              : std_logic;
     signal iTransmitCreditCount            : std_logic_vector (5 downto 0);
-    signal iCreditErrorNCharactorOverFlow  : std_logic;
+    signal iCreditErrorNCharacterOverFlow  : std_logic;
     signal iCreditErrorFCTOverFlow         : std_logic;
     signal iTransmitReady                  : std_logic;
     signal iCreditError                    : std_logic;
@@ -177,7 +177,7 @@ begin
 
 
     creditError         <= iCreditError;
-    iCreditError        <= iCreditErrorNCharactorOverFlow or iCreditErrorFCTOverFlow;
+    iCreditError        <= iCreditErrorNCharacterOverFlow or iCreditErrorFCTOverFlow;
     creditCountOut      <= iTransmitCreditCount (5 downto 0);
     outstandingCountOut <= iOutstandingCount;
     transmitReady       <= iTransmitReady;
@@ -357,7 +357,7 @@ begin
             iOutstandingCount              <= "000000";
             iTransmitFCTState              <= '0';
             iTransmitFCTStart              <= '0';
-            iCreditErrorNCharactorOverFlow <= '0';
+            iCreditErrorNCharacterOverFlow <= '0';
 
         elsif (transmitClock'event and transmitClock = '1') then
             if (iTransmitFCTState = '0') then
@@ -390,16 +390,16 @@ begin
             -- host system is not expecting any more data.                   
             ----------------------------------------------------------------------
             if (iGotNCharacterSynchronizedDelay (9) = '1' and iOutstandingCount = "000000") then
-                iCreditErrorNCharactorOverFlow <= '1';
+                iCreditErrorNCharacterOverFlow <= '1';
             else
-                iCreditErrorNCharactorOverFlow <= '0';
+                iCreditErrorNCharacterOverFlow <= '0';
             end if;
         end if;
     end process;
 
 ----------------------------------------------------------------------
--- Instract to start Transmit and load data to buffer after read the data from 
--- TransmitFIFO.
+-- Instruction to start transmitting and load data into the buffer after
+-- reading data from the transmit FIFO.
 ----------------------------------------------------------------------
     process (transmitClock, iResetIn)
     begin
@@ -459,7 +459,7 @@ begin
 
 ----------------------------------------------------------------------
 -- ECSS-E-ST-50-12C 8.4.2 Transmitter
--- The data is convoert to serial after stored in shift register, Transmit Tx as 
+-- The data is converted to serial after being stored in the shift register, then transmitted as
 -- DS signal. 
 -- Generate odd parity and Transmit Null data automatically.
 ----------------------------------------------------------------------
@@ -613,7 +613,7 @@ begin
 
                     ----------------------------------------------------------------------
                     -- Transmit Data Control Flag
-                    -- Data Character = "0" Control Caracter = "1".
+                    -- Data character = "0"; control character = "1".
                     ----------------------------------------------------------------------
                     when transmitStateControl =>
                         if (enableTransmit = '1') then
@@ -638,7 +638,7 @@ begin
                         end if;
 
                     ----------------------------------------------------------------------
-                    -- Transmit Data Character or Control Caracter.
+                    -- Transmit data or control characters.
                     ----------------------------------------------------------------------
                     when transmitStateData =>
                         if (enableTransmit = '1') then
