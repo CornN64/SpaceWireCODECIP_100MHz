@@ -116,7 +116,7 @@ architecture Behavioral of SpaceWireCODECIPTransmitter is
     signal iTransmitDataBuffer             : std_logic_vector (7 downto 0);
     signal iTransmitDataControlFlagBuffer  : std_logic;
     signal gotFCTSynchronized              : std_logic;
-    signal iTransmitCreditCount            : std_logic_vector (6 downto 0);
+    signal iTransmitCreditCount            : std_logic_vector (5 downto 0);
     signal iCreditErrorNCharactorOverFlow  : std_logic;
     signal iCreditErrorFCTOverFlow         : std_logic;
     signal iTransmitReady                  : std_logic;
@@ -181,7 +181,7 @@ begin
     creditCountOut      <= iTransmitCreditCount (5 downto 0);
     outstandingCountOut <= iOutstandingCount;
     transmitReady       <= iTransmitReady;
-    iTransmitReady      <= '0' when (iSendStart = '1' or iTransmitFCTStart = '1' or iTransmitCreditCount = "0000000") else '1';
+    iTransmitReady      <= '0' when (iSendStart = '1' or iTransmitFCTStart = '1' or iTransmitCreditCount = "000000") else '1';
     spaceWireDataOut    <= iDataOutRegister;
     spaceWireStrobeOut  <= iStrobeOutRegister;
 
@@ -270,7 +270,7 @@ begin
                     iTransmitCreditCount <= iTransmitCreditCount + 8;
                 end if;
             elsif (iDecrementCredit = '1') then
-                if (iTransmitCreditCount /= "0000000") then
+                if (iTransmitCreditCount /= "000000") then
                     iTransmitCreditCount <= iTransmitCreditCount - 1;
                 end if;
             end if;
@@ -288,7 +288,7 @@ begin
         if (iResetIn = '1') then
             iCreditOverFlow <= '0';
         elsif (transmitClock'event and transmitClock = '1') then
-            if (iTransmitCreditCount > "0111000") then
+            if (iTransmitCreditCount > "111000") then
                 iCreditOverFlow <= '1';
             end if;
         end if;
@@ -424,9 +424,9 @@ begin
 -- After a reset the SpaceWire link transmitter shall initially commence 
 -- operating at a data signalling rate of (10±1) Mb/s.
 ----------------------------------------------------------------------
-    process (transmitClock, reset)
+    process (transmitClock, iResetIn)
     begin
-        if (reset = '1') then
+        if (iResetIn = '1') then
             iClockDivideRegister <= gInitializeTransmitClockDivideValue;
         elsif (transmitClock'event and transmitClock = '1') then
             if (sendNCharacters = '1') then
@@ -441,9 +441,9 @@ begin
 -- ECSS-E-ST-50-12C 8.4.3 Transmit clock
 -- Dividing counter to determine the Transmit signalling rate.
 ----------------------------------------------------------------------
-    process (transmitClock, reset)
+    process (transmitClock, iResetIn)
     begin
-        if (reset = '1') then
+        if (iResetIn = '1') then
             iDivideCount <= (others => '0');
             iDivideState <= '0';
         elsif (transmitClock'event and transmitClock = '1') then
@@ -463,9 +463,9 @@ begin
 -- DS signal. 
 -- Generate odd parity and Transmit Null data automatically.
 ----------------------------------------------------------------------
-    process (transmitClock, reset)
+    process (transmitClock, iResetIn)
     begin
-        if (reset = '1') then
+        if (iResetIn = '1') then
             iTransmitParity       <= '0';
             transmitState         <= transmitStateStop;
             iDataOutRegister      <= '0';
@@ -479,7 +479,6 @@ begin
             iFirstNullSend        <= '0';
             iSendCount            <= (others => '0');
             iSendData             <= (others => '0');
-            
 
         elsif (transmitClock'event and transmitClock = '1') then
             if (iDivideState = '1') then

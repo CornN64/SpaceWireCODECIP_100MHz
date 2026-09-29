@@ -137,7 +137,7 @@ architecture Behavioral of SpaceWireCODECIP is
             transmitReady               : out std_logic;
             transmitClockDivideValue    : in  std_logic_vector(5 downto 0);
             creditCount                 : out std_logic_vector (5 downto 0);
-            outstndingCount             : out std_logic_vector (5 downto 0);
+            outstandingCount            : out std_logic_vector (5 downto 0);
             -- receiver.
             receiveClock                : in  std_logic;
             tickOut                     : out std_logic;
@@ -292,7 +292,7 @@ begin
             transmitReady               => transmitReady,
             transmitClockDivideValue    => transmitClockDivideValue,
             creditCount                 => creditCount,
-            outstndingCount             => outstandingCount,
+            outstandingCount            => outstandingCount,
             -- receiver.
             receiveClock                => receiveClock,
             tickOut                     => tickOut,

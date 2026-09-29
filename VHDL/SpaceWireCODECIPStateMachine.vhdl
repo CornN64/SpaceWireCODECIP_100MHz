@@ -40,7 +40,7 @@ entity SpaceWireCODECIPStateMachine is
         enableTransmit                : out std_logic;
         sendNulls                     : out std_logic;
         sendFCTs                      : out std_logic;
-        sendNCharacter                : out std_logic;
+        sendNCharacters               : out std_logic;
         sendTimeCodes                 : out std_logic;
         gotFCT                        : in  std_logic;
         gotTimeCode                   : in  std_logic;
@@ -95,7 +95,7 @@ architecture Behavioral of SpaceWireCODECIPStateMachine is
     signal iEnableTransmit          : std_logic;
     signal iSendNulls               : std_logic;
     signal iSendFCTs                : std_logic;
-    signal iSendNCharacter          : std_logic;
+    signal iSendNCharacters         : std_logic;
     signal iSendTimeCodes           : std_logic;
     signal iEnableReceive           : std_logic;
     signal iSpaceWireResetOut       : std_logic;
@@ -159,7 +159,7 @@ begin
     enableTransmit                <= iEnableTransmit;
     sendNulls                     <= iSendNulls;
     sendFCTs                      <= iSendFCTs;
-    sendNCharacter                <= iSendNCharacter;
+    sendNCharacters               <= iSendNCharacters;
     sendTimeCodes                 <= iSendTimeCodes;
     enableReceive                 <= iEnableReceive;
     spaceWireResetOut             <= iSpaceWireResetOut;
@@ -186,7 +186,7 @@ begin
             iEnableTransmit         <= '0';
             iSendNulls              <= '0';
             iSendFCTs               <= '0';
-            iSendNCharacter         <= '0';
+            iSendNCharacters        <= '0';
             iSendTimeCodes          <= '0';
             iCharacterSequenceError <= '0';
             iTimer6p4usReset        <= '1';
@@ -220,7 +220,7 @@ begin
                     iEnableTransmit         <= '0';
                     iSendNulls              <= '0';
                     iSendFCTs               <= '0';
-                    iSendNCharacter         <= '0';
+                    iSendNCharacters        <= '0';
                     iSendTimeCodes          <= '0';
                     iCharacterSequenceError <= '0';
 
@@ -354,11 +354,11 @@ begin
                 -- shall move to the ErrorResetState.
                 ----------------------------------------------------------------------
                 when linkStateRun =>
-                    iEnableTransmit <= '1';
-                    iEnableReceive  <= '1';
-                    iSendNCharacter <= '1';
-                    iSendTimeCodes  <= '1';
-                    iLinkUpEnable   <= '1';
+                    iEnableTransmit  <= '1';
+                    iEnableReceive   <= '1';
+                    iSendNCharacters <= '1';
+                    iSendTimeCodes   <= '1';
+                    iLinkUpEnable    <= '1';
 
                     if (iSendTimeCodes = '0') then
                         iLinkUpTransition <= '1';

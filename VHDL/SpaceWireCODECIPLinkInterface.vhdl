@@ -57,7 +57,7 @@ entity SpaceWireCODECIPLinkInterface is
         transmitReady               : out std_logic;
         transmitClockDivideValue    : in  std_logic_vector(5 downto 0);
         creditCount                 : out std_logic_vector (5 downto 0);
-        outstndingCount             : out std_logic_vector (5 downto 0);
+        outstandingCount           : out std_logic_vector (5 downto 0);
         -- receiver.
         receiveClock                : in  std_logic;
         tickOut                     : out std_logic;
@@ -161,7 +161,7 @@ architecture Behavioral of SpaceWireCODECIPLinkInterface is
             enableTransmit                : out std_logic;
             sendNulls                     : out std_logic;
             sendFCTs                      : out std_logic;
-            sendNCharacter                : out std_logic;
+            sendNCharacters               : out std_logic;
             sendTimeCodes                 : out std_logic;
             gotTimeCode                   : in  std_logic;
             gotFCT                        : in  std_logic;
@@ -249,7 +249,7 @@ architecture Behavioral of SpaceWireCODECIPLinkInterface is
     signal disconnectError               : std_logic;
     signal receiveError                  : std_logic;
     signal enableReceive                 : std_logic;
-    signal sendNCharactors               : std_logic;
+    signal sendNCharacters               : std_logic;
     signal sendTimeCode                  : std_logic;
     signal after12p8us                   : std_logic;
     signal after6p4us                    : std_logic;
@@ -332,7 +332,7 @@ begin
             --autoStart.     
             sendNulls                => sendNulls,
             sendFCTs                 => sendFCTs,
-            sendNCharacters          => sendNCharactors,
+            sendNCharacters          => sendNCharacters,
             sendTimeCodes            => sendTimeCode,
             --tx_fct.
             gotFCT                   => gotFCT,
@@ -341,7 +341,7 @@ begin
             creditError              => iCreditError,
             transmitClockDivide      => transmitClockDivideValue,
             creditCountOut           => creditCount,
-            outstandingCountOut      => outstndingCount,
+            outstandingCountOut      => outstandingCount,
             spaceWireResetOut        => spaceWireResetOutSignal,
             transmitEEPAsynchronous  => transmitEEPAsynchronous,
             transmitEOPAsynchronous  => transmitEOPAsynchronous,
@@ -362,7 +362,7 @@ begin
             enableTransmit                => enableTransmit,
             sendNulls                     => sendNulls,
             sendFCTs                      => sendFCTs,
-            sendNCharacter                => sendNCharactors,
+            sendNCharacters               => sendNCharacters,
             sendTimeCodes                 => sendTimeCode,
             gotFCT                        => gotFCT,
             gotTimeCode                   => gotTimeCode,
@@ -407,7 +407,7 @@ begin
             receiveClock                => receiveClock,
             receiveEEPAsynchronous      => receiveEEPAsynchronous,
             receiveEOPAsynchronous      => receiveEOPAsynchronous,
-            receiveByteASynchronous     => receiveByteAsynchronous,
+            receiveByteAsynchronous     => receiveByteAsynchronous,
             transmitEEPAsynchronous     => transmitEEPAsynchronous,
             transmitEOPAsynchronous     => transmitEOPAsynchronous,
             transmitByteAsynchronous    => transmitByteAsynchronous,
@@ -435,7 +435,7 @@ begin
 
 
     receiveFIFOWriteEnable1  <= iReceiveFIFOWriteEnable1;
-    iReceiveFIFOWriteEnable1 <= (receiveFIFOWriteEnable0 and sendNCharactors);
+    iReceiveFIFOWriteEnable1 <= (receiveFIFOWriteEnable0 and sendNCharacters);
     iGotBit                  <= not receiveOff;
     spaceWireResetOut        <= spaceWireResetOutSignal;
 
@@ -446,7 +446,7 @@ begin
     linkStatus (1)           <= enableReceive;
     linkStatus (2)           <= sendNulls;
     linkStatus (3)           <= sendFCTs;
-    linkStatus (4)           <= sendNCharactors;
+    linkStatus (4)           <= sendNCharacters;
     linkStatus (5)           <= sendTimeCode;
     linkStatus (6)           <= '0';
     linkStatus (7)           <= spaceWireResetOutSignal;
