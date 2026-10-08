@@ -207,6 +207,8 @@ architecture Behavioral of SpaceWireCODECIP is
 
 	signal sel_sin : std_logic; --Used for loop back mode
 	signal sel_din : std_logic; --Used for loop back mode
+	signal i_dout  : std_logic; --Internal copy of the dout output port, readable for loop back mode
+	signal i_sout  : std_logic; --Internal copy of the sout output port, readable for loop back mode
 begin
 
     iTransmitData            <= transmitFIFOReadData (7 downto 0);
@@ -260,8 +262,13 @@ begin
             );
 
     -- allow for loopback testing
-    sel_sin <= sin when LoopBack = 0 else sout;
-    sel_din <= din when LoopBack = 0 else dout;
+    -- the dout/sout output ports cannot be read, so the loop back muxes use the
+    -- internal signals that drive them.
+    sel_sin <= sin when LoopBack = 0 else i_sout;
+    sel_din <= din when LoopBack = 0 else i_dout;
+
+    dout <= i_dout;
+    sout <= i_sout;
 
     SpaceWireLinkInterface : SpaceWireCODECIPLinkInterface
         generic map (
@@ -303,8 +310,8 @@ begin
             receiveDataControlFlag      => receiveDataControlFlag,
             receiveFIFOCount            => receiveFIFOCount,
             -- serial i/o.
-            spaceWireDataOut            => dout,
-            spaceWireStrobeOut          => sout,
+            spaceWireDataOut            => i_dout,
+            spaceWireStrobeOut          => i_sout,
             spaceWireDataIn             => sel_din,
             spaceWireStrobeIn           => sel_sin,
             --

@@ -8,8 +8,8 @@ Open-source SpaceWire codec implementation with the transmitter, receiver, link 
 
 The project has been reviewed for internal consistency and hardware-safety concerns.
 
-- Syntax/editor diagnostics: clean across the VHDL sources
-- Internal naming and port mismatches corrected
+- All ten VHDL sources compile cleanly (VHDL-87/93 and VHDL-2008)
+- Internal naming and port mismatches corrected: all 26 instantiations were verified by binding each one directly to its entity, so every port and generic association is checked at compile time
 - Remaining risk areas are limited to hardware-level timing concerns rather than syntax or wiring errors
 
 ### Current hardware-safety review notes
@@ -30,21 +30,22 @@ The original project notes indicate the following expected operating assumptions
 
 ```text
 SpaceWireCODECIP.vhdl
-├─ SpaceWireCODECIPLinkInterface.vhdl
-│  ├─ SpaceWireCODECIPReceiverSynchronize.vhdl
-│  ├─ SpaceWireCODECIPTransmitter.vhdl
-│  │  └─ SpaceWireCODECIPSynchronizeOnePulse.vhdl
-│  ├─ SpaceWireCODECIPStateMachine.vhdl
-│  │  └─ SpaceWireCODECIPSynchronizeOnePulse.vhdl
-│  ├─ SpaceWireCODECIPTimer.vhdl
-│  ├─ SpaceWireCODECIPTimeCodeControl.vhdl
-│  ├─ SpaceWireCODECIPStatisticalInformationCount.vhdl
-│  │  └─ SpaceWireCODECIPSynchronizeOnePulse.vhdl
-│  └─ SpaceWireCODECIPFIFO9x64.vhdl
-└─ (top-level FIFO and system control glue)
+├─ SpaceWireCODECIPFIFO9x64.vhdl          (transmitFIFO, receiveFIFO)
+├─ SpaceWireCODECIPSynchronizeOnePulse.vhdl
+└─ SpaceWireCODECIPLinkInterface.vhdl
+   ├─ SpaceWireCODECIPReceiverSynchronize.vhdl
+   ├─ SpaceWireCODECIPTransmitter.vhdl
+   │  └─ SpaceWireCODECIPSynchronizeOnePulse.vhdl
+   ├─ SpaceWireCODECIPStateMachine.vhdl
+   │  └─ SpaceWireCODECIPSynchronizeOnePulse.vhdl
+   ├─ SpaceWireCODECIPTimer.vhdl
+   ├─ SpaceWireCODECIPTimeCodeControl.vhdl
+   │  └─ SpaceWireCODECIPSynchronizeOnePulse.vhdl
+   └─ SpaceWireCODECIPStatisticalInformationCount.vhdl
+      └─ SpaceWireCODECIPSynchronizeOnePulse.vhdl
 ```
 
-This shows the main integration path: the top-level codec instantiates the link interface, which then connects the receiver, transmitter, state machine, timer, timing-control, and statistics blocks.
+This shows the main integration path: the top-level codec instantiates the two cross-clock-domain FIFOs and the link interface, which then connects the receiver, transmitter, state machine, timer, timing-control, and statistics blocks. `SpaceWireCODECIPSynchronizeOnePulse.vhdl` is a leaf used by the top level and by four of the sub-blocks.
 
 ## History
 
